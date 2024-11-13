@@ -23,8 +23,10 @@
     "@mantine/core": "7.13.3",
     "@mantine/hooks": "7.13.3",
     "@tabler/icons-react": "^3.19.0",
+    "d3-force": "^3.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-force-graph-2d": "^1.25.7",
     "react-router-dom": "^6.27.0"
   },
   "devDependencies": {
@@ -37,6 +39,7 @@
     "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",
     "@types/css-modules": "^1.0.5",
+    "@types/d3-force": "^3.0.10",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.2",
