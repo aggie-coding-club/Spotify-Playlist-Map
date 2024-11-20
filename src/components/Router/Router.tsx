@@ -39,8 +39,6 @@ const tabs = [
   { label: 'Insights', path: '/insights' },
   { label: 'Discover', path: '/discover' },
   { label: 'Friends & Connections', path: '/friends' },
-  { label: 'Settings', path: '/settings' },
-  { label: 'NUCLEAR BOMB', path: '/nuclear' },
 ];
 
 export function Router() {

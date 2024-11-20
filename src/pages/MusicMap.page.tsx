@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import { forceCollide } from 'd3-force'; 
+import { Paper, Title, Text, Stack, Group, Button } from '@mantine/core';
+import { IconPlayerPause, IconPlayerPlay, IconPlayerTrackNext, IconPlayerTrackPrev} from '@tabler/icons-react';
 
 type SongNode = {
   id: string;
@@ -25,6 +27,7 @@ interface MusicMapProps {
 export const MusicMap: React.FC<MusicMapProps> = ({ nodes, links }) => {
   const fgRef = useRef<any>();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [imageCache, setImageCache] = useState<Record<string, HTMLImageElement>>({});
   const [dimensions, setDimensions] = useState({
     width: 0,
@@ -35,10 +38,9 @@ export const MusicMap: React.FC<MusicMapProps> = ({ nodes, links }) => {
   const updateDimensions = () => {
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
-      // Subtract margins from the width calculation
       setDimensions({
-        width: (rect.width - 48) * 0.8, // 48px = 3rem (2rem for outer margins + 1rem for inner margin)
-        height: rect.height - 32 // 32px = 2rem (1rem top + 1rem bottom)
+        width: (rect.width - 48) * 0.8,
+        height: rect.height - 32
       });
     }
   };
@@ -79,22 +81,22 @@ export const MusicMap: React.FC<MusicMapProps> = ({ nodes, links }) => {
       ref={containerRef}
       style={{ 
         width: '100%',
-        height: 'calc(100vh - var(--mantine-header-height, 60px))',
-        backgroundColor: '#DDDDDD', 
-        padding: '1rem',
+        height: 'calc(100vh - var(--mantine-header-height, 103px))',
+        backgroundColor: 'var(--mantine-color-gray-1)', 
+        padding: '0.5rem',
         display: 'flex',
-        gap: '1rem', // margin between map and details
+        gap: '0.5rem',
         position: 'relative',
         overflow: 'hidden'
       }}
     >
-      <div style={{ 
-        width: '80%', 
-        height: '100%',
-        backgroundColor: 'white',
-        borderRadius: '8px',
-        overflow: 'hidden'
-      }}>
+      <Paper 
+        style={{ 
+          width: '80%', 
+          height: '100%',
+          overflow: 'hidden'
+        }}
+      >
         <ForceGraph2D
           width={dimensions.width}
           height={dimensions.height}
@@ -104,7 +106,7 @@ export const MusicMap: React.FC<MusicMapProps> = ({ nodes, links }) => {
           nodeAutoColorBy="id"
           linkWidth={2}
           enableNodeDrag={false}
-          nodeCanvasObject={(node: SongNode, ctx, globalScale) => {
+          nodeCanvasObject={(node: SongNode, ctx: CanvasRenderingContext2D, globalScale: number) => {
             const img = imageCache[node.id];
             if (!img) return; 
 
@@ -116,13 +118,12 @@ export const MusicMap: React.FC<MusicMapProps> = ({ nodes, links }) => {
             ctx.drawImage(img, node.x! - size / 2, node.y! - size / 2, size, size);
             ctx.restore();
 
-            // Song title above the node
             ctx.font = `${12 / globalScale}px Sans-Serif`;
             ctx.textAlign = 'center';
             ctx.fillStyle = 'black';
             ctx.fillText(node.title, node.x!, node.y! - size / 2 - 5);
           }}
-          nodePointerAreaPaint={(node, color, ctx) => {
+          nodePointerAreaPaint={(node: SongNode, color: string, ctx: CanvasRenderingContext2D) => {
             const size = 40;
             ctx.fillStyle = color;
             ctx.beginPath();
@@ -130,27 +131,99 @@ export const MusicMap: React.FC<MusicMapProps> = ({ nodes, links }) => {
             ctx.fill();
           }}
         />
-      </div>
-      <div style={{ 
-        width: '20%', 
-        height: '100%',
-        backgroundColor: 'white',
-        padding: '1rem',
-        borderRadius: '8px',
-        boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-        overflowY: 'auto'
-      }}>
-        <h2 style={{ 
-          fontSize: '1.5rem', 
-          fontWeight: 'bold',
-          marginBottom: '1rem'
-        }}>
-          Music Details
-        </h2>
-        <p>todo: fix bottom margin</p>
-        <p>split this seciton into music detials and music player</p>
-        {/* Add more components here */}
-      </div>
+      </Paper>
+      <Stack style={{ width: '20%' }} gap="md">
+        <Paper shadow="sm" p="md" style={{ flex: 1 }}>
+          <Title order={4} mb="md">Music Player</Title>
+          <Stack gap="md">
+            <div style={{
+              width: '20%',
+              aspectRatio: '1',
+              backgroundColor: 'var(--mantine-color-gray-1)',
+              borderRadius: 'var(--mantine-radius-md)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <Text c="dimmed" size="xs">Album Art</Text>
+            </div>
+            
+            <div>
+              <div style={{
+                height: '4px',
+                width: '100%',
+                backgroundColor: 'var(--mantine-color-gray-2)',
+                borderRadius: '2px',
+                marginBottom: '0.5rem'
+              }}>
+                <div style={{
+                  height: '100%',
+                  width: '33%',
+                  backgroundColor: 'var(--mantine-color-blue-6)',
+                  borderRadius: '2px'
+                }} />
+              </div>
+              <Group justify="space-between">
+                <Text size="xs" c="dimmed">1:23</Text>
+                <Text size="xs" c="dimmed">3:45</Text>
+              </Group>
+            </div>
+            
+            <Group justify="center" gap="md">
+              <Button variant="subtle" p="xs" style={{ borderRadius: '50%' }}>
+                <IconPlayerTrackPrev size={20} />
+              </Button>
+              <Button 
+                variant="subtle" 
+                p="xs" 
+                style={{ borderRadius: '50%' }}
+                onClick={() => setIsPlaying(!isPlaying)}
+              >
+                {isPlaying ? <IconPlayerPause size={20} /> : <IconPlayerPlay size={20} />}
+              </Button>
+              <Button variant="subtle" p="xs" style={{ borderRadius: '50%' }}>
+                <IconPlayerTrackNext size={20} />
+              </Button>
+            </Group>
+          </Stack>
+        </Paper>
+
+        <Paper shadow="sm" p="md" style={{ flex: 3 }}>
+          <Title order={4} mb="md">Music Details</Title>
+          <Stack gap="md">
+            <div>
+              <Text fw={500} size="sm">Selected Song</Text>
+              <Text size="sm" c="dimmed">Click a node to view details</Text>
+            </div>
+            <div>
+              <Text fw={500} size="sm">Artist</Text>
+              <Text size="sm" c="dimmed">-</Text>
+            </div>
+            <div>
+              <Text fw={500} size="sm">Album</Text>
+              <Text size="sm" c="dimmed">-</Text>
+            </div>
+            <div>
+              <Text fw={500} size="sm">Genre</Text>
+              <Text size="sm" c="dimmed">-</Text>
+            </div>
+            <div>
+              <Text fw={500} size="sm">Release Date</Text>
+              <Text size="sm" c="dimmed">-</Text>
+            </div>
+            <div>
+              <Text fw={500} size="sm">Duration</Text>
+              <Text size="sm" c="dimmed">-</Text>
+            </div>
+            <div>
+              <Text fw={500} size="sm">Connected Songs</Text>
+              <Text size="sm" c="dimmed">-</Text>
+            </div>
+          </Stack>
+        </Paper>
+      </Stack>
     </div>
   );
 };
+
+export default MusicMap;
