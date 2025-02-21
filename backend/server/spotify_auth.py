@@ -22,6 +22,7 @@ AUTH_URL = 'https://accounts.spotify.com/authorize'
 TOKEN_URL = 'https://accounts.spotify.com/api/token'
 API_BASE_URL = 'https://api.spotify.com/v1/'
 
+
 def token_required(f):
     """
     Decorator to check for valid JWT token in request headers
@@ -45,6 +46,7 @@ def token_required(f):
         return f(*args, **kwargs)
     return decorated
 
+
 def create_jwt_token(user_id):
     """
     Generates a JWT token for the user
@@ -54,6 +56,7 @@ def create_jwt_token(user_id):
         'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)
     }
     return jwt.encode(payload, JWT_SECRET_KEY, algorithm='HS256')
+
 
 @auth_bp.route('/api/spotify/auth', methods=['GET'])
 def get_auth_url():
@@ -70,6 +73,7 @@ def get_auth_url():
     }
     auth_url = f"{AUTH_URL}?{urllib.parse.urlencode(parameters)}"
     return jsonify({'authUrl': auth_url})
+
 
 @auth_bp.route('/callback')
 def callback():
@@ -120,6 +124,7 @@ def callback():
     except Exception as e:
         return redirect(f'{FRONTEND_URI}/callback?error={urllib.parse.quote(str(e))}')
 
+
 @auth_bp.route('/api/spotify/playlists', methods=['GET', 'OPTIONS'])
 def get_playlists():
     """
@@ -146,6 +151,7 @@ def get_playlists():
             return jsonify({'error': str(e)}), 400
             
     return handle_get()
+
 
 @auth_bp.route('/api/spotify/top-tracks', methods=['GET', 'OPTIONS'])
 def get_top_tracks():
@@ -179,6 +185,7 @@ def get_top_tracks():
             
     return handle_get()
 
+
 @auth_bp.route('/api/spotify/playlist/<playlist_id>/tracks', methods=['GET', 'OPTIONS'])
 def get_playlist_tracks(playlist_id):
     """
@@ -204,6 +211,7 @@ def get_playlist_tracks(playlist_id):
             return jsonify({'error': str(e)}), 400
             
     return handle_get()
+
 
 @auth_bp.route('/api/spotify/recommendations', methods=['GET', 'OPTIONS'])
 def get_recommendations():
