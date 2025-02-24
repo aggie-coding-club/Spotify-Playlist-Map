@@ -7,18 +7,56 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# frontend
+node_modules/
+dist/
+dist-ssr/
 *.local
 
-# Editor directories and files
+.yarn/
+.yarnrc.yml
+.yarn/cache/
+.yarn/patches/
+.yarn/plugins/
+.yarn/releases/
+.yarn/sdks/
+.yarn/versions/
+.pnpm-debug.log*
+
+# vscode
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# backend/python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# env
+.env
+.env.local
+.env.*.local
+
+# other
+*.sqlite3
+*.db
+*.cache
+.coverage
+
