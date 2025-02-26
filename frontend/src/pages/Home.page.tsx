@@ -79,15 +79,7 @@ export function HomePage() {
 
 
   return (
-    <AppShell
-      header={{ height: 100 }} 
-      padding="md"
-    >
-      <AppShell.Header>
-        <Router />
-      </AppShell.Header>
-
-      <AppShell.Main>
+    <>
         <Container size="lg" maw={1200}>
           <Grid>
             <Grid.Col span={{ base: 12, md: 6 }}>
@@ -179,7 +171,6 @@ export function HomePage() {
           </Grid>
         </Container>
         <Footer/>
-      </AppShell.Main>
-    </AppShell>
+    </>
   );
 }

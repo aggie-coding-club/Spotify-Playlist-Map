@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
+import { SpotifyPlaylist, SpotifyTrack } from '../types/spotifyTypes';
 
-// Interface definitions
+// Interface definitions (keep only auth-related types)
 interface SpotifyTokens {
   accessToken: string;
   refreshToken: string;
@@ -12,26 +13,9 @@ interface UserData {
   id: string;
   display_name: string;
   email: string;
-  // Add other user properties as needed
 }
 
-interface Playlist {
-  id: string;
-  name: string;
-  // Add other playlist properties as needed
-}
-
-interface Track {
-  id: string;
-  name: string;
-  artists: Array<{
-    id: string;
-    name: string;
-  }>;
-  // Add other track properties as needed
-}
-
-// API response types
+// API response types (modified to use imported types)
 interface AuthResponse {
   authUrl: string;
 }
@@ -39,30 +23,26 @@ interface AuthResponse {
 interface CallbackResponse extends SpotifyTokens {}
 
 interface PlaylistsResponse {
-  items: Playlist[];
+  items: SpotifyPlaylist[];
 }
 
 interface TopTracksResponse {
-  items: Track[];
+  items: SpotifyTrack[];
 }
 
 interface PlaylistTracksResponse {
   items: Array<{
-    track: Track;
+    track: SpotifyTrack;
   }>;
 }
 
-interface RecommendationsResponse {
-  tracks: Track[];
-}
-
-// Create the API instance
+// Create the API instance (unchanged)
 const api: AxiosInstance = axios.create({
   baseURL: 'http://localhost:5000/api/spotify',
   withCredentials: true
 });
 
-// Add request interceptor to add tokens to headers
+// Add request interceptor (unchanged)
 api.interceptors.request.use((config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
   const jwtToken = localStorage.getItem('jwt_token');
   const spotifyToken = localStorage.getItem('spotify_access_token');
@@ -77,7 +57,7 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig): InternalAxios
   return config;
 });
 
-// Add response interceptor to handle token refresh
+// Add response interceptor (unchanged)
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: any) => {
@@ -94,7 +74,6 @@ api.interceptors.response.use(
         
         return api(originalRequest);
       } catch (error) {
-        // Refresh failed, redirect to login
         window.location.href = '/';
         return Promise.reject(error);
       }
@@ -115,7 +94,6 @@ export const spotifyAPI = {
     const response = await api.post<CallbackResponse>('/callback', { code });
     const { accessToken, refreshToken, jwtToken, userData } = response.data;
     
-    // Store tokens
     localStorage.setItem('spotify_access_token', accessToken);
     localStorage.setItem('spotify_refresh_token', refreshToken);
     localStorage.setItem('jwt_token', jwtToken);
@@ -124,53 +102,20 @@ export const spotifyAPI = {
     return userData;
   },
   
-  async getPlaylists(): Promise<Playlist[]> {
+  async getPlaylists(): Promise<SpotifyPlaylist[]> {
     const response = await api.get<PlaylistsResponse>('/playlists');
     return response.data.items;
   },
   
-  async getTopTracks(timeRange: TimeRange = 'medium_term'): Promise<Track[]> {
+  async getTopTracks(timeRange: TimeRange = 'medium_term'): Promise<SpotifyTrack[]> {
     const response = await api.get<TopTracksResponse>('/top-tracks', {
       params: { time_range: timeRange }
     });
-    // console.log(response);
     return response.data.items;
   },
   
-  async getPlaylistTracks(playlistId: string): Promise<Array<{ track: Track }>> {
+  async getPlaylistTracks(playlistId: string): Promise<Array<{ track: SpotifyTrack }>> {
     const response = await api.get<PlaylistTracksResponse>(`/playlist/${playlistId}/tracks`);
     return response.data.items;
   },
-
-  async getRecommendations({
-    seed_tracks = [],
-    seed_artists = [],
-    seed_genres = [],
-    limit = 5,
-    market = 'US'
-  }: {
-    seed_tracks?: string[];
-    seed_artists?: string[];
-    seed_genres?: string[];
-    limit?: number;
-    market?: string;
-  }): Promise<Track[]> {
-    // Validate that at least one seed is provided
-    if (!seed_tracks?.length && !seed_artists?.length && !seed_genres?.length) {
-      throw new Error('At least one seed parameter is required');
-    }
-  
-    const response = await api.get<RecommendationsResponse>('/recommendations', {
-      params: {
-        seed_tracks: seed_tracks?.join(','),
-        seed_artists: seed_artists?.join(','),
-        seed_genres: seed_genres?.join(','),
-        limit,
-        market
-      }
-    });
-    
-    console.log('API Response:', response.data);  // Add logging
-    return response.data.tracks;
-  }
 };

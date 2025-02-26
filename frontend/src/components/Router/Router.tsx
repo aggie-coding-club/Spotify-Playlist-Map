@@ -1,181 +1,65 @@
-import cx from 'clsx';
-import { useState } from 'react';
 import {
-  Container,
-  Avatar,
-  UnstyledButton,
-  Group,
-  Text,
-  Menu,
-  Tabs,
+  IconBook,
+  IconChartPie3,
+  IconChevronDown,
+  IconCode,
+  IconCoin,
+  IconFingerprint,
+  IconNotification,
+} from '@tabler/icons-react';
+import {
+  Anchor,
+  Box,
   Burger,
-  rem,
+  Button,
+  Center,
+  Collapse,
+  Divider,
+  Drawer,
+  Group,
+  HoverCard,
+  ScrollArea,
+  SimpleGrid,
+  Text,
+  ThemeIcon,
+  UnstyledButton,
   useMantineTheme,
 } from '@mantine/core';
-import { Link, useNavigate } from 'react-router-dom';
 import { useDisclosure } from '@mantine/hooks';
-import {
-  IconLogout,
-  IconHeart,
-  IconStar,
-  IconMessage,
-  IconSettings,
-  IconPlayerPause,
-  IconTrash,
-  IconSwitchHorizontal,
-  IconChevronDown,
-} from '@tabler/icons-react';
-import classes from './Router.module.css';
-
-const user = {
-  name: 'Reveille X',
-  email: 'canipetdatdawg@gmail.com',
-  image: 'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-5.png',
-};
-
-const tabs = [
-  { label: 'Home', path: '/' },
-  { label: 'My MusicMap', path: '/musicmap' },
-  { label: 'Insights', path: '/insights' },
-  { label: 'Discover', path: '/discover' },
-  { label: 'Friends & Connections', path: '/friends' },
-];
+import classes from './Router.module.css'
 
 export function Router() {
-  const theme = useMantineTheme();
-  const [opened, { toggle }] = useDisclosure(false);
-  const [userMenuOpened, setUserMenuOpened] = useState(false);
-  const navigate = useNavigate();
-
-  const items = tabs.map((tab) => (
-    <Tabs.Tab
-      value={tab.label}
-      key={tab.label}
-      onClick={() => navigate(tab.path)}
-    >
-      {tab.label}
-    </Tabs.Tab>
-  ));
+  const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
 
   return (
-    <div className={classes.header}>
-      <Container className={classes.mainSection} size="md">
-        <Group justify="space-between">
-          <Burger opened={opened} onClick={toggle} hiddenFrom="xs" size="sm" />
+    <Box pb={120}>
+      <header className={classes.header}>
+        <Group justify="space-between" h="100%">
+          <a href="/" className={classes.link}>
+            <Text fw={700} size="xl" c="black" style={{ fontFamily: "serif", fontStyle: "italic" }}>vibemap</Text>
+          </a>
+          
 
-          <Menu
-            width={260}
-            position="bottom-end"
-            transitionProps={{ transition: 'pop-top-right' }}
-            onClose={() => setUserMenuOpened(false)}
-            onOpen={() => setUserMenuOpened(true)}
-            withinPortal
-          >
-            <Menu.Target>
-              <UnstyledButton
-                className={cx(classes.user, { [classes.userActive]: userMenuOpened })}
-              >
-                <Group gap={7}>
-                  <Avatar src={user.image} alt={user.name} radius="xl" size={20} />
-                  <Text fw={500} size="sm" lh={1} mr={3}>
-                    {user.name}
-                  </Text>
-                  <IconChevronDown style={{ width: rem(12), height: rem(12) }} stroke={1.5} />
-                </Group>
-              </UnstyledButton>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Item
-                leftSection={
-                  <IconHeart
-                    style={{ width: rem(16), height: rem(16) }}
-                    color={theme.colors.red[6]}
-                    stroke={1.5}
-                  />
-                }
-              >
-                Liked posts
-              </Menu.Item>
-              <Menu.Item
-                leftSection={
-                  <IconStar
-                    style={{ width: rem(16), height: rem(16) }}
-                    color={theme.colors.yellow[6]}
-                    stroke={1.5}
-                  />
-                }
-              >
-                Saved posts
-              </Menu.Item>
-              <Menu.Item
-                leftSection={
-                  <IconMessage
-                    style={{ width: rem(16), height: rem(16) }}
-                    color={theme.colors.blue[6]}
-                    stroke={1.5}
-                  />
-                }
-              >
-                Your comments
-              </Menu.Item>
+          <Group h="100%" gap={0} visibleFrom="sm">
+            <a href="/musicmap" className={classes.link}>
+              Get Started
+            </a>
+            <a href="#" className={classes.link}>
+              Features
+            </a>
+            <a href="#" className={classes.link}>
+              About
+            </a>
+            <a href="#" className={classes.link}>
+              Contact
+            </a>
+          </Group>
 
-              <Menu.Label>Settings</Menu.Label>
-              <Menu.Item
-                leftSection={
-                  <IconSettings style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-                }
-              >
-                Account settings
-              </Menu.Item>
-              <Menu.Item
-                leftSection={
-                  <IconSwitchHorizontal style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-                }
-              >
-                Change account
-              </Menu.Item>
-              <Menu.Item
-                leftSection={
-                  <IconLogout style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-                }
-              >
-                Logout
-              </Menu.Item>
-
-              <Menu.Divider />
-
-              <Menu.Label>Danger zone</Menu.Label>
-              <Menu.Item
-                leftSection={
-                  <IconPlayerPause style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-                }
-              >
-                Pause subscription
-              </Menu.Item>
-              <Menu.Item
-                color="red"
-                leftSection={<IconTrash style={{ width: rem(16), height: rem(16) }} stroke={1.5} />}
-              >
-                Delete account
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
+          <Group visibleFrom="sm">
+            <Button variant="default" radius="xl">Log in</Button>
+          </Group>
         </Group>
-      </Container>
-      <Container size="md">
-        <Tabs
-          defaultValue="Home"
-          variant="outline"
-          visibleFrom="sm"
-          classNames={{
-            root: classes.tabs,
-            list: classes.tabsList,
-            tab: classes.tab,
-          }}
-        >
-          <Tabs.List>{items}</Tabs.List>
-        </Tabs>
-      </Container>
-    </div>
+      </header>
+    </Box>
   );
 }

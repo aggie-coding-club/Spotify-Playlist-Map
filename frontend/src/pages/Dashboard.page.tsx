@@ -59,97 +59,91 @@ export function Dashboard() {
   const iconStyle = { width: rem(20), height: rem(20) };
 
   return (
-    <AppShell header={{ height: 100 }} padding="md">
-      <AppShell.Header>
-        <Router />
-      </AppShell.Header>
+    <>
+      <LoadingOverlay visible={isLoading} />
+      <Container size="lg" maw={1200}>
+        {userData && (
+          <Group mb="xl">
+            <Avatar 
+              src={userData.images?.[0]?.url} 
+              size="xl" 
+              radius="xl"
+            />
+            <Stack gap={0}>
+              <Text size="xs" fw={700} c="dimmed">WELCOME BACK</Text>
+              <Title order={1}>{userData.display_name}</Title>
+            </Stack>
+          </Group>
+        )}
 
-      <AppShell.Main>
-        <LoadingOverlay visible={isLoading} />
-        <Container size="lg" maw={1200}>
-          {userData && (
-            <Group mb="xl">
-              <Avatar 
-                src={userData.images?.[0]?.url} 
-                size="xl" 
-                radius="xl"
-              />
-              <Stack gap={0}>
-                <Text size="xs" fw={700} c="dimmed">WELCOME BACK</Text>
-                <Title order={1}>{userData.display_name}</Title>
-              </Stack>
-            </Group>
-          )}
+        <Tabs defaultValue="playlists">
+          <Tabs.List>
+            <Tabs.Tab 
+              value="playlists" 
+              leftSection={<IconPlaylist style={iconStyle} />}
+            >
+              Your Playlists
+            </Tabs.Tab>
+            <Tabs.Tab 
+              value="top-tracks" 
+              leftSection={<IconChartBar style={iconStyle} />}
+            >
+              Top Tracks
+            </Tabs.Tab>
+          </Tabs.List>
 
-          <Tabs defaultValue="playlists">
-            <Tabs.List>
-              <Tabs.Tab 
-                value="playlists" 
-                leftSection={<IconPlaylist style={iconStyle} />}
-              >
-                Your Playlists
-              </Tabs.Tab>
-              <Tabs.Tab 
-                value="top-tracks" 
-                leftSection={<IconChartBar style={iconStyle} />}
-              >
-                Top Tracks
-              </Tabs.Tab>
-            </Tabs.List>
-
-            <Tabs.Panel value="playlists" pt="xl">
-              <Grid>
-                {playlists.map((playlist) => (
-                  <Grid.Col key={playlist.id} span={{ base: 12, sm: 6, md: 4 }}>
-                    <Card shadow="sm" padding="lg" radius="md" withBorder>
-                      <Card.Section>
-                        <img
-                          src={playlist.images[0]?.url || '/api/placeholder/300/300'}
-                          alt={playlist.name}
-                          style={{ width: '100%', height: '200px', objectFit: 'cover' }}
-                        />
-                      </Card.Section>
-
-                      <Group justify="space-between" mt="md" mb="xs">
-                        <Text fw={500} lineClamp={1}>{playlist.name}</Text>
-                      </Group>
-
-                      <Text size="sm" c="dimmed">
-                        {playlist.tracks.total} tracks
-                      </Text>
-                    </Card>
-                  </Grid.Col>
-                ))}
-              </Grid>
-            </Tabs.Panel>
-
-            <Tabs.Panel value="top-tracks" pt="xl">
-              <Stack gap="md">
-                {topTracks.map((track, index) => (
-                  <Card key={track.id} padding="sm" withBorder>
-                    <Group>
-                      <Text size="lg" fw={700} w={30} ta="center">
-                        {index + 1}
-                      </Text>
+          <Tabs.Panel value="playlists" pt="xl">
+            <Grid>
+              {playlists.map((playlist) => (
+                <Grid.Col key={playlist.id} span={{ base: 12, sm: 6, md: 4 }}>
+                  <Card shadow="sm" padding="lg" radius="md" withBorder>
+                    <Card.Section>
                       <img
-                        src={track.album.images[2]?.url || '/api/placeholder/64/64'}
-                        alt={track.name}
-                        style={{ width: '64px', height: '64px', objectFit: 'cover' }}
+                        src={playlist.images[0]?.url || '/api/placeholder/300/300'}
+                        alt={playlist.name}
+                        style={{ width: '100%', height: '200px', objectFit: 'cover' }}
                       />
-                      <Stack gap={0} style={{ flex: 1 }}>
-                        <Text fw={500} lineClamp={1}>{track.name}</Text>
-                        <Text size="sm" c="dimmed" lineClamp={1}>
-                          {track.artists.map((artist: { name: string }) => artist.name).join(', ')}
-                        </Text>
-                      </Stack>
+                    </Card.Section>
+
+                    <Group justify="space-between" mt="md" mb="xs">
+                      <Text fw={500} lineClamp={1}>{playlist.name}</Text>
                     </Group>
+
+                    <Text size="sm" c="dimmed">
+                      {playlist.tracks.total} tracks
+                    </Text>
                   </Card>
-                ))}
-              </Stack>
-            </Tabs.Panel>
-          </Tabs>
-        </Container>
-      </AppShell.Main>
-    </AppShell>
+                </Grid.Col>
+              ))}
+            </Grid>
+          </Tabs.Panel>
+
+          <Tabs.Panel value="top-tracks" pt="xl">
+            <Stack gap="md">
+              {topTracks.map((track, index) => (
+                <Card key={track.id} padding="sm" withBorder>
+                  <Group>
+                    <Text size="lg" fw={700} w={30} ta="center">
+                      {index + 1}
+                    </Text>
+                    <img
+                      src={track.album.images[2]?.url || '/api/placeholder/64/64'}
+                      alt={track.name}
+                      style={{ width: '64px', height: '64px', objectFit: 'cover' }}
+                    />
+                    <Stack gap={0} style={{ flex: 1 }}>
+                      <Text fw={500} lineClamp={1}>{track.name}</Text>
+                      <Text size="sm" c="dimmed" lineClamp={1}>
+                        {track.artists.map((artist: { name: string }) => artist.name).join(', ')}
+                      </Text>
+                    </Stack>
+                  </Group>
+                </Card>
+              ))}
+            </Stack>
+          </Tabs.Panel>
+        </Tabs>
+      </Container>
+    </>
   );
 }
