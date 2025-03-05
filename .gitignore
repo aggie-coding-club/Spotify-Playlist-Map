@@ -41,6 +41,7 @@ __pycache__/
 *.pyd
 .Python
 .venv/
+.conda/
 venv/
 env/
 ENV/
