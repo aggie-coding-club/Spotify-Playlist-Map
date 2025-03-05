@@ -104,7 +104,8 @@ export function MusicMap() {
       { source: '5', target: '4', weight: 0.5 },
       { source: '6', target: '5', weight: 0.5 },
       { source: '5', target: '3', weight: 0.5 },
-      { source: '1', target: '3', weight: 0.5 }
+      { source: '1', target: '3', weight: 0.5 },
+      { source: '1', target: '5', weight: 0.5 }
     ]
 
   };
