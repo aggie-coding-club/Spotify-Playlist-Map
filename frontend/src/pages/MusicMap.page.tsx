@@ -13,6 +13,10 @@ export function MusicMap() {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [isPlaying, setIsPlaying] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+
+  // const [artistPreview, setArtist] = useState("-");
+
 
   // Hardcoded playlists for carousel (original implementation)
   const hardcodedPlaylists: SpotifyPlaylist[] = [
@@ -89,7 +93,7 @@ export function MusicMap() {
       },
       {
         id: '6',
-        label: 'Sample Track 5',
+        label: 'Sample Track 6',
         image: 'https://placehold.co/600x400',
         metadata: { artist: 'Artist 5', genre: 'House' }
       }
@@ -123,7 +127,7 @@ export function MusicMap() {
     updateDimensions();
     window.addEventListener('resize', updateDimensions);
     return () => window.removeEventListener('resize', updateDimensions);
-  }, []);
+  }, []);  
 
   return (
     <div 
@@ -151,6 +155,7 @@ export function MusicMap() {
               nodeAutoColorBy="id"
               linkWidth={2}
               enableNodeDrag={false}
+              onNodeClick={(node: Node) => setSelectedNode(node)}
               nodeCanvasObject={(node: Node, ctx: CanvasRenderingContext2D, globalScale: number) => {
                 const img = new Image();
                 img.src = node.image ?? 'https://placehold.co/600x400';
@@ -238,11 +243,11 @@ export function MusicMap() {
               <Stack gap="md">
                 <div>
                   <Text fw={500} size="sm">Selected Song</Text>
-                  <Text size="sm" c="dimmed">Click a node to view details</Text>
+                  <Text size="sm" c="dimmed">{selectedNode?.label ?? 'Click a node!'}</Text>
                 </div>
                 <div>
-                  <Text fw={500} size="sm">Artist</Text>
-                  <Text size="sm" c="dimmed">-</Text>
+                  <Text fw={500} size="sm">Artists</Text>
+                  <Text size="sm" c="dimmed">{selectedNode?.metadata?.artist ?? '-'}</Text>
                 </div>
                 <div>
                   <Text fw={500} size="sm">Album</Text>
@@ -250,7 +255,7 @@ export function MusicMap() {
                 </div>
                 <div>
                   <Text fw={500} size="sm">Genre</Text>
-                  <Text size="sm" c="dimmed">-</Text>
+                  <Text size="sm" c="dimmed">{selectedNode?.metadata?.genre ?? '-'}</Text>
                 </div>
                 <div>
                   <Text fw={500} size="sm">Release Date</Text>
