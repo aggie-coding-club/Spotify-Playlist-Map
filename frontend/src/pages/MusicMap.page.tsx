@@ -13,6 +13,10 @@ export function MusicMap() {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [isPlaying, setIsPlaying] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+
+  // const [artistPreview, setArtist] = useState("-");
+
 
   // Hardcoded playlists for carousel (original implementation)
   const hardcodedPlaylists: SpotifyPlaylist[] = [
@@ -60,19 +64,54 @@ export function MusicMap() {
       {
         id: '1',
         label: 'Sample Track 1',
-        image: 'https://via.placeholder.com/150',
+        image: 'https://placehold.co/600x400',
         metadata: { artist: 'Artist 1', genre: 'Pop' }
       },
       {
         id: '2',
         label: 'Sample Track 2',
-        image: 'https://via.placeholder.com/150',
+        image: 'https://placehold.co/600x400',
         metadata: { artist: 'Artist 2', genre: 'Rock' }
+      },
+      {
+        id: '3',
+        label: 'Sample Track 3',
+        image: 'https://placehold.co/600x400',
+        metadata: { artist: 'Artist 2', genre: 'Rap' }
+      },
+      {
+        id: '4',
+        label: 'Sample Track 4',
+        image: 'https://placehold.co/600x400',
+        metadata: { artist: 'Artist 3', genre: 'Jazz' }
+      },
+      {
+        id: '5',
+        label: 'Sample Track 5',
+        image: 'https://placehold.co/600x400',
+        metadata: { artist: 'Artist 4', genre: 'Indie' }
+      },
+      {
+        id: '6',
+        label: 'Sample Track 6',
+        image: 'https://placehold.co/600x400',
+        metadata: { artist: 'Artist 5', genre: 'House' }
       }
+
+
     ],
     links: [
-      { source: '1', target: '2', weight: 0.85 }
+      { source: '1', target: '2', weight: 0.85 },
+      { source: '2', target: '3', weight: 0.01 },
+      { source: '3', target: '2', weight: 0.2 },
+      { source: '4', target: '3', weight: 0.5 },
+      { source: '5', target: '4', weight: 0.5 },
+      { source: '6', target: '5', weight: 0.5 },
+      { source: '5', target: '3', weight: 0.5 },
+      { source: '1', target: '3', weight: 0.5 },
+      { source: '1', target: '5', weight: 0.5 }
     ]
+
   };
 
   useEffect(() => {
@@ -88,7 +127,7 @@ export function MusicMap() {
     updateDimensions();
     window.addEventListener('resize', updateDimensions);
     return () => window.removeEventListener('resize', updateDimensions);
-  }, []);
+  }, []);  
 
   return (
     <div 
@@ -104,61 +143,7 @@ export function MusicMap() {
         overflow: 'hidden'
       }}
     >
-      {!showMap ? (
-        <Stack
-          bg="var(--mantine-color-body)"
-          style={{ color: 'white', padding: '20px', width: '100%' }}
-          justify='space-around'
-          align='center'
-          gap="xs"
-        >
-          <Carousel
-            withControls
-            slideSize="50%"
-            align="center"
-            slideGap="xs" 
-            slidesToScroll={1}
-            loop
-            controlsOffset="xs"
-            controlSize={32}
-            height="30rem"
-            style={{ width: '40%', margin: '0 auto' }}
-          >
-            {hardcodedPlaylists.map((playlist) => (
-              <Carousel.Slide 
-                key={playlist.id} 
-                style={{ textAlign: 'center', padding: '0 5px' }}
-                onClick={() => setShowMap(true)}
-              >
-                <div style={{ 
-                  height: '30rem', 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  alignItems: 'center',
-                  cursor: 'pointer'
-                }}>
-                  <img
-                    src={playlist.images[0]?.url || 'https://via.placeholder.com/300'}
-                    alt={`${playlist.name} cover`}
-                    style={{ 
-                      borderRadius: 8,
-                      height: '20rem', 
-                      width: '100%',
-                      objectFit: 'contain',
-                      marginBottom: 10,
-                      backgroundColor: '#2d2d2d'
-                    }}
-                  />
-                  <Text size="lg" fw={500} c="black">{playlist.name}</Text>
-                  <Text size="sm" c="dimmed">
-                    {playlist.tracks.total} tracks
-                  </Text>
-                </div>
-              </Carousel.Slide>
-            ))}
-          </Carousel>
-        </Stack>
-      ) : (
+      
         <>
           <Paper style={{ width: '80%', height: '100%', overflow: 'hidden' }}>
             <ForceGraph2D
@@ -170,9 +155,10 @@ export function MusicMap() {
               nodeAutoColorBy="id"
               linkWidth={2}
               enableNodeDrag={false}
+              onNodeClick={(node: Node) => setSelectedNode(node)}
               nodeCanvasObject={(node: Node, ctx: CanvasRenderingContext2D, globalScale: number) => {
                 const img = new Image();
-                img.src = node.image ?? 'https://via.placeholder.com/300';
+                img.src = node.image ?? 'https://placehold.co/600x400';
                 const size = 40 / globalScale;
                 ctx.save();
                 ctx.beginPath();
@@ -257,11 +243,11 @@ export function MusicMap() {
               <Stack gap="md">
                 <div>
                   <Text fw={500} size="sm">Selected Song</Text>
-                  <Text size="sm" c="dimmed">Click a node to view details</Text>
+                  <Text size="sm" c="dimmed">{selectedNode?.label ?? 'Click a node!'}</Text>
                 </div>
                 <div>
-                  <Text fw={500} size="sm">Artist</Text>
-                  <Text size="sm" c="dimmed">-</Text>
+                  <Text fw={500} size="sm">Artists</Text>
+                  <Text size="sm" c="dimmed">{selectedNode?.metadata?.artist ?? '-'}</Text>
                 </div>
                 <div>
                   <Text fw={500} size="sm">Album</Text>
@@ -269,7 +255,7 @@ export function MusicMap() {
                 </div>
                 <div>
                   <Text fw={500} size="sm">Genre</Text>
-                  <Text size="sm" c="dimmed">-</Text>
+                  <Text size="sm" c="dimmed">{selectedNode?.metadata?.genre ?? '-'}</Text>
                 </div>
                 <div>
                   <Text fw={500} size="sm">Release Date</Text>
@@ -287,7 +273,6 @@ export function MusicMap() {
             </Paper>
           </Stack>
         </>
-      )}
     </div>
   );
 }
