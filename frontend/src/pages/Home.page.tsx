@@ -17,8 +17,6 @@ import {
   IconWorldSearch
 } from '@tabler/icons-react';
 
-
-import { Router } from '../components/Router/Router';
 import { FeatureCard } from '../components/FeatureCard/FeatureCard';
 import { Footer } from '../components/Footer/Footer'
 
@@ -80,7 +78,7 @@ export function HomePage() {
 
   return (
     <>
-        <Container size="lg" maw={1200}>
+        <Container size="lg" maw={1200} mt={200}>
           <Grid>
             <Grid.Col span={{ base: 12, md: 6 }}>
               <Stack gap="md">

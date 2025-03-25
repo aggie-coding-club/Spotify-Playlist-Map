@@ -1,20 +1,14 @@
-import { useRef, useEffect, useState } from 'react';
-import ForceGraph2D from 'react-force-graph-2d';
-import { Paper, Title, Text, Stack, Group, Button, Center } from '@mantine/core';
+import { useRef, useState } from 'react';
+import { Paper, Title, Text, Stack, Group, Button } from '@mantine/core';
 import { IconPlayerPause, IconPlayerPlay, IconPlayerTrackNext, IconPlayerTrackPrev } from '@tabler/icons-react';
-import { Carousel } from '@mantine/carousel';
-import '@mantine/carousel/styles.css';
-import { Node, Link, GraphData } from '../types/reactForceGraphTypes';
+import { Node, GraphData } from '../types/reactForceGraphTypes';
 import { SpotifyPlaylist } from '../types/spotifyTypes';
+import ForceGraph from '../components/ForceGraph/ForceGraph'
 
 export function MusicMap() {
-  const fgRef = useRef<any>();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [isPlaying, setIsPlaying] = useState(false);
-  const [showMap, setShowMap] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
-
   // const [artistPreview, setArtist] = useState("-");
 
 
@@ -57,6 +51,7 @@ export function MusicMap() {
       external_urls: { spotify: '' }
     }
   ];
+
 
   // Hardcoded graph data
   const mockGraphData: GraphData = {
@@ -114,76 +109,29 @@ export function MusicMap() {
 
   };
 
-  useEffect(() => {
-    const updateDimensions = () => {
-      if (containerRef.current) {
-        setDimensions({
-          width: containerRef.current.clientWidth * 0.8,
-          height: containerRef.current.clientHeight
-        });
-      }
-    };
-
-    updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
-  }, []);  
 
   return (
     <div 
       ref={containerRef}
       style={{ 
         width: '100%',
-        height: 'calc(100vh - var(--mantine-header-height, 103px))',
+        height: 'calc(100vh - 3.75rem)', // This code assumes the header's height will always be 60px
         backgroundColor: 'var(--mantine-color-gray-1)', 
-        padding: '0.5rem',
+        padding: '1rem',
         display: 'flex',
-        gap: '0.5rem',
+        gap: '1rem',
         position: 'relative',
         overflow: 'hidden'
       }}
     >
       
         <>
-          <Paper style={{ width: '80%', height: '100%', overflow: 'hidden' }}>
-            <ForceGraph2D
-              width={dimensions.width}
-              height={dimensions.height}
-              ref={fgRef}
-              graphData={mockGraphData}
-              nodeLabel={(node: Node) => `${node.label}`}
-              nodeAutoColorBy="id"
-              linkWidth={2}
-              enableNodeDrag={false}
-              onNodeClick={(node: Node) => setSelectedNode(node)}
-              nodeCanvasObject={(node: Node, ctx: CanvasRenderingContext2D, globalScale: number) => {
-                const img = new Image();
-                img.src = node.image ?? 'https://placehold.co/600x400';
-                const size = 40 / globalScale;
-                ctx.save();
-                ctx.beginPath();
-                ctx.arc(node.x!, node.y!, size / 2, 0, 2 * Math.PI, false);
-                ctx.clip();
-                ctx.drawImage(img, node.x! - size / 2, node.y! - size / 2, size, size);
-                ctx.restore();
-
-                ctx.font = `${12 / globalScale}px Sans-Serif`;
-                ctx.textAlign = 'center';
-                ctx.fillStyle = 'black';
-                ctx.fillText(node.label, node.x!, node.y! - size / 2 - 5);
-              }}
-              nodePointerAreaPaint={(node: Node, color: string, ctx: CanvasRenderingContext2D) => {
-                const size = 40;
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                ctx.arc(node.x!, node.y!, size / 2, 0, 2 * Math.PI, false);
-                ctx.fill();
-              }}
-            />
+          <Paper radius='lg' shadow='lg' style={{ width: '80%', height: '100%', overflow: 'hidden' }}>
+            <ForceGraph graphData={mockGraphData} onNodeClick={setSelectedNode}/>
           </Paper>
 
-          <Stack style={{ width: '20%' }} gap="md">
-            <Paper shadow="sm" p="md" style={{ flex: 1 }}>
+          <Stack style={{ width: '20%' }} gap='md'>
+            <Paper radius='lg' shadow="lg" p="md" style={{ flex: 1 }}>
               <Title order={4} mb="md">Music Player</Title>
               <Stack gap="md">
                 <div style={{
@@ -238,7 +186,7 @@ export function MusicMap() {
               </Stack>
             </Paper>
 
-            <Paper shadow="sm" p="md" style={{ flex: 3 }}>
+            <Paper radius='lg' shadow="lg" p="md" style={{ flex: 3 }}>
               <Title order={4} mb="md">Music Details</Title>
               <Stack gap="md">
                 <div>

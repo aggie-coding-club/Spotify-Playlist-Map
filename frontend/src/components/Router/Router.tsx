@@ -1,38 +1,10 @@
-import {
-  IconBook,
-  IconChartPie3,
-  IconChevronDown,
-  IconCode,
-  IconCoin,
-  IconFingerprint,
-  IconNotification,
-} from '@tabler/icons-react';
-import {
-  Anchor,
-  Box,
-  Burger,
-  Button,
-  Center,
-  Collapse,
-  Divider,
-  Drawer,
-  Group,
-  HoverCard,
-  ScrollArea,
-  SimpleGrid,
-  Text,
-  ThemeIcon,
-  UnstyledButton,
-  useMantineTheme,
-} from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { Box, Button, Group, Text } from '@mantine/core';
 import classes from './Router.module.css'
 
+// the height of header is 3.75 rem
 export function Router() {
-  const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
-
   return (
-    <Box pb={120}>
+    <Box pb={0}> 
       <header className={classes.header}>
         <Group justify="space-between" h="100%">
           <a href="/" className={classes.link}>
