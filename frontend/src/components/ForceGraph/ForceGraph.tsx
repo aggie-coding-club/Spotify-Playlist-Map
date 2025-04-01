@@ -1,6 +1,8 @@
 import React, { useRef, memo, useMemo } from 'react';
-import ForceGraph2D from 'react-force-graph-2d';
+import ForceGraph3D from 'react-force-graph-3d';
+import * as THREE from 'three';
 import { Node, GraphData } from '../../types/reactForceGraphTypes';
+import { Box, Text } from "@mantine/core"
 
 interface GraphProps {
   graphData: GraphData;
@@ -10,54 +12,61 @@ interface GraphProps {
 const ForceGraph: React.FC<GraphProps> = memo(({ graphData, onNodeClick }) => {
   const fgRef = useRef<any>(null);
 
-  // we have to memoize the canvas drawings to avoid re-rendering
-  const nodeCanvasObject = useMemo(() => {
-    return (node: Node, ctx: CanvasRenderingContext2D, globalScale: number) => {
-      const img = new Image();
-      img.src = node.image ?? 'https://placehold.co/600x400';
-      const size = 40 / globalScale;
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(node.x!, node.y!, size / 2, 0, 2 * Math.PI, false);
-      ctx.clip();
-      ctx.drawImage(img, node.x! - size / 2, node.y! - size / 2, size, size);
-      ctx.restore();
-      ctx.font = `${12 / globalScale}px Sans-Serif`;
-      ctx.textAlign = 'center';
-      ctx.fillStyle = 'black';
-      ctx.fillText(node.label, node.x!, node.y! - size / 2 - 5);
-    };
-  }, []); // empty dependency array to only render once (i think)
-
-  // memoize paint function too
-  const nodePointerAreaPaint = useMemo(() => {
-    return (node: Node, color: string, ctx: CanvasRenderingContext2D) => {
-      const size = 40;
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(node.x!, node.y!, size / 2, 0, 2 * Math.PI, false);
-      ctx.fill();
+  // custom three.js object
+  const nodeThreeObject = useMemo(() => {
+    return (node: Node) => {
+      const textureLoader = new THREE.TextureLoader();
+      const imgTexture = textureLoader.load(node.image ?? 'https://placehold.co/600x400');
+      imgTexture.colorSpace = THREE.SRGBColorSpace;
+      const material = new THREE.SpriteMaterial({ map: imgTexture });
+      const sprite = new THREE.Sprite(material);
+      sprite.scale.set(12, 12, 1);
+      return sprite;
     };
   }, []);
 
-  // memoize graph data - ONLY RE-RENDER if data changes
+  // node label
+  const nodeThreeObjectExtend = useMemo(() => {
+    return false; // return true IF u want to debug w/ default node rendering
+  }, []);
+
+  // memoization - only re-render IF data changes
   const memoizedGraphData = useMemo(() => graphData, [
     graphData.nodes.length, 
     graphData.links.length
   ]);
 
+  // render w/ above params
   return (
-    <ForceGraph2D
-      ref={fgRef}
-      graphData={memoizedGraphData}
-      nodeLabel={(node: Node) => `${node.label}`}
-      nodeAutoColorBy="id"
-      linkWidth={2}
-      enableNodeDrag={false}
-      onNodeClick={onNodeClick}
-      nodeCanvasObject={nodeCanvasObject}
-      nodePointerAreaPaint={nodePointerAreaPaint}
-    />
+    <Box style={{ position: "relative", display: "inline-block" }}>
+      <Text
+        size="50"
+        fw={700}
+        style={{
+          position: "absolute",
+          top: 50,
+          left: 50,
+          padding: "4px 8px",
+          borderRadius: "4px",
+          zIndex: 10,
+          lineHeight: 1,
+        }}
+      >
+        Album cover, song title, and artist name go here
+      </Text>
+
+      <ForceGraph3D
+        ref={fgRef}
+        graphData={memoizedGraphData}
+        nodeLabel={(node: Node) => `${node.label}`}
+        nodeAutoColorBy="id"
+        linkWidth={1}
+        nodeThreeObject={nodeThreeObject}
+        nodeThreeObjectExtend={nodeThreeObjectExtend}
+        onNodeClick={onNodeClick}
+        backgroundColor="#ffffff"
+      />
+    </Box>
   );
 });
 

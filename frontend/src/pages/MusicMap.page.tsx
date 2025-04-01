@@ -59,37 +59,37 @@ export function MusicMap() {
       {
         id: '1',
         label: 'Sample Track 1',
-        image: 'https://placehold.co/600x400',
+        image: 'https://picsum.photos/400',
         metadata: { artist: 'Artist 1', genre: 'Pop' }
       },
       {
         id: '2',
         label: 'Sample Track 2',
-        image: 'https://placehold.co/600x400',
+        image: 'https://picsum.photos/400',
         metadata: { artist: 'Artist 2', genre: 'Rock' }
       },
       {
         id: '3',
         label: 'Sample Track 3',
-        image: 'https://placehold.co/600x400',
+        image: 'https://picsum.photos/400',
         metadata: { artist: 'Artist 2', genre: 'Rap' }
       },
       {
         id: '4',
         label: 'Sample Track 4',
-        image: 'https://placehold.co/600x400',
+        image: 'https://picsum.photos/400',
         metadata: { artist: 'Artist 3', genre: 'Jazz' }
       },
       {
         id: '5',
         label: 'Sample Track 5',
-        image: 'https://placehold.co/600x400',
+        image: 'https://picsum.photos/400',
         metadata: { artist: 'Artist 4', genre: 'Indie' }
       },
       {
         id: '6',
         label: 'Sample Track 6',
-        image: 'https://placehold.co/600x400',
+        image: 'https://picsum.photos/400',
         metadata: { artist: 'Artist 5', genre: 'House' }
       }
 
