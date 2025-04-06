@@ -7,7 +7,8 @@ import { theme } from './theme';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { HomePage } from './pages/Home.page';
 import { MusicMap } from './pages/MusicMap.page';
-import { Dashboard } from './pages/Dashboard.page'
+import { Dashboard } from './pages/Dashboard.page';
+import { AboutPage } from './pages/About.page';
 
 import Callback from './utils/callback'
 import ProtectedRoute from './utils/ProtectedRoute';
@@ -27,6 +28,7 @@ export default function App() {
             <Dashboard/>
           </ProtectedRoute>
         } />
+        <Route path="/about" element={<AboutPage/>}/>
       </Routes>
     </BrowserRouter>
     </MantineProvider>
