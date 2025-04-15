@@ -126,11 +126,11 @@ export function MusicMap() {
     >
       
         <>
-          <Paper radius='lg' shadow='lg' style={{ width: '80%', height: '100%', overflow: 'hidden' }}>
-            <ForceGraph graphData={mockGraphData} onNodeClick={setSelectedNode}/>
+          <Paper radius='lg' shadow='lg' style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <ForceGraph graphData={mockGraphData} onNodeClick={setSelectedNode} selectedNode={selectedNode}/>
           </Paper>
 
-          <Stack style={{ width: '20%' }} gap='md'>
+          {/*<Stack style={{ width: '20%' }} gap='md'>
             <Paper radius='lg' shadow="lg" p="md" style={{ flex: 1 }}>
               <Title order={4} mb="md">Music Player</Title>
               <Stack gap="md">
@@ -217,9 +217,9 @@ export function MusicMap() {
                   <Text fw={500} size="sm">Connected Songs</Text>
                   <Text size="sm" c="dimmed">-</Text>
                 </div>
-              </Stack>
+                  </Stack>
             </Paper>
-          </Stack>
+          </Stack>*/}
         </>
     </div>
   );
