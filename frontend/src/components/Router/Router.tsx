@@ -19,7 +19,7 @@ export function Router() {
             <a href="#" className={classes.link}>
               Features
             </a>
-            <a href="/about" className={classes.link}>
+            <a href="#" className={classes.link}>
               About
             </a>
             <a href="#" className={classes.link}>

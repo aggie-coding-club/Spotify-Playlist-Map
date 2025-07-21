@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
-from spotify_auth import auth_bp 
+from spotify_auth import auth_bp
+from graph_routes import graph_bp
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, resources={
@@ -14,6 +15,7 @@ CORS(app, supports_credentials=True, resources={
 # randomly generated
 app.secret_key = '0cc529d1-69a3-443b-b6be-6073abba0313'
 app.register_blueprint(auth_bp)
+app.register_blueprint(graph_bp) 
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

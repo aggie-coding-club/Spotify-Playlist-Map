@@ -1,4 +1,11 @@
-Flask==2.3.3
-flask-cors==3.0.10
-requests==2.31.0
-PyJWT==2.8.0
+Flask>=3.0.0
+Flask-Cors>=4.0.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+PyJWT>=2.8.0
+spotipy>=2.23.0
+networkx>=3.2.1
+numpy>=1.26.4
+scikit-learn>=1.4.2
+node2vec>=0.4.6
+gensim>=4.3.2

@@ -18,13 +18,15 @@ export type SpotifyArtist = {
   portrait: string;
 }
 
+export type Image = { url: string; height?: number; width?: number };
+
 export type SpotifyAlbum = {
   id: string;
   name: string;
-  release_date: string; // YYYY-MM
-  albumCover: string;
-  num_tracks: number;
-}
+  release_date: string;        
+  images: Image[];             
+  total_tracks: number;        
+};
 
 // Every time you call "get track" from the API, the response includes:
 //    an album object 
