@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  AppShell,
   Container,
   Grid,
   Title,
@@ -13,7 +12,6 @@ import {
   rem,
 } from '@mantine/core';
 import { IconPlaylist, IconChartBar } from '@tabler/icons-react';
-import { Router } from '../components/Router/Router';
 import { spotifyAPI } from '../utils/spotifyAPI';
 import { LoadingOverlay } from '@mantine/core';
 

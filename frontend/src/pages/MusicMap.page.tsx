@@ -1,278 +1,376 @@
-import { useRef, useEffect, useState } from 'react';
-import ForceGraph2D from 'react-force-graph-2d';
-import { Paper, Title, Text, Stack, Group, Button, Center } from '@mantine/core';
-import { IconPlayerPause, IconPlayerPlay, IconPlayerTrackNext, IconPlayerTrackPrev } from '@tabler/icons-react';
-import { Carousel } from '@mantine/carousel';
-import '@mantine/carousel/styles.css';
-import { Node, Link, GraphData } from '../types/reactForceGraphTypes';
+import { useRef, useState, useEffect } from 'react';
+import {
+  Paper,
+  Text,
+  Stack,
+  Button,
+  Loader,
+  Center,
+  ScrollArea,
+  Card,
+  Image,
+  Select,
+  Alert,
+  Group,
+  Tabs,
+} from '@mantine/core';
+
+import { Node, GraphData } from '../types/reactForceGraphTypes';
 import { SpotifyPlaylist } from '../types/spotifyTypes';
+import { spotifyAPI } from '../utils/spotifyAPI';
+
+import ForceGraph from '../components/ForceGraph/ForceGraph';
 
 export function MusicMap() {
-  const fgRef = useRef<any>();
+  /* ─────────────── Graph state ─────────────── */
+  const [showGraph, setShowGraph] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [showMap, setShowMap] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [graphData, setGraphData] = useState<GraphData>({ nodes: [], links: [] });
+  const [graphLoading, setGraphLoading] = useState(false);
+  const [graphError, setGraphError] = useState<string | null>(null);
 
-  // const [artistPreview, setArtist] = useState("-");
+  /* ─────────────── Playlist picker state ─────────────── */
+  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
+  const [loadingPlaylists, setLoadingPlaylists] = useState(true);
+  const [playlistErr, setPlaylistErr] = useState<string | null>(null);
+  const [selectedPl, setSelectedPl] = useState<SpotifyPlaylist | null>(() => {
+    const cached = localStorage.getItem('selected_playlist');
+    return cached ? (JSON.parse(cached) as SpotifyPlaylist) : null;
+  });
+  
+  /* ─────────────── Recommendations state ─────────────── */
+  const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState('tracks');
+  const [analysisType, setAnalysisType] = useState<'regular' | 'recommendations'>('regular');
 
-
-  // Hardcoded playlists for carousel (original implementation)
-  const hardcodedPlaylists: SpotifyPlaylist[] = [
-    {
-      id: '1',
-      name: 'My Favorite Tracks',
-      images: [{ url: 'https://via.placeholder.com/300' }],
-      tracks: { 
-        total: 20,
-        href: '',
-        items: [] 
-      },
-      owner: { 
-        display_name: 'User', 
-        id: '1' 
-      },
-      public: true,
-      collaborative: false,
-      description: 'Best tracks collection',
-      external_urls: { spotify: '' }
-    },
-    {
-      id: '2',
-      name: 'Summer Hits',
-      images: [{ url: 'https://via.placeholder.com/300' }],
-      tracks: { 
-        total: 15,
-        href: '',
-        items: [] 
-      },
-      owner: { 
-        display_name: 'User', 
-        id: '1' 
-      },
-      public: true,
-      collaborative: false,
-      description: 'Hot summer tracks',
-      external_urls: { spotify: '' }
-    }
-  ];
-
-  // Hardcoded graph data
-  const mockGraphData: GraphData = {
-    nodes: [
-      {
-        id: '1',
-        label: 'Sample Track 1',
-        image: 'https://placehold.co/600x400',
-        metadata: { artist: 'Artist 1', genre: 'Pop' }
-      },
-      {
-        id: '2',
-        label: 'Sample Track 2',
-        image: 'https://placehold.co/600x400',
-        metadata: { artist: 'Artist 2', genre: 'Rock' }
-      },
-      {
-        id: '3',
-        label: 'Sample Track 3',
-        image: 'https://placehold.co/600x400',
-        metadata: { artist: 'Artist 2', genre: 'Rap' }
-      },
-      {
-        id: '4',
-        label: 'Sample Track 4',
-        image: 'https://placehold.co/600x400',
-        metadata: { artist: 'Artist 3', genre: 'Jazz' }
-      },
-      {
-        id: '5',
-        label: 'Sample Track 5',
-        image: 'https://placehold.co/600x400',
-        metadata: { artist: 'Artist 4', genre: 'Indie' }
-      },
-      {
-        id: '6',
-        label: 'Sample Track 6',
-        image: 'https://placehold.co/600x400',
-        metadata: { artist: 'Artist 5', genre: 'House' }
-      }
-
-
-    ],
-    links: [
-      { source: '1', target: '2', weight: 0.85 },
-      { source: '2', target: '3', weight: 0.01 },
-      { source: '3', target: '2', weight: 0.2 },
-      { source: '4', target: '3', weight: 0.5 },
-      { source: '5', target: '4', weight: 0.5 },
-      { source: '6', target: '5', weight: 0.5 },
-      { source: '5', target: '3', weight: 0.5 },
-      { source: '1', target: '3', weight: 0.5 },
-      { source: '1', target: '5', weight: 0.5 }
-    ]
-
-  };
-
+  /* ─────────────── Load playlists once ─────────────── */
   useEffect(() => {
-    const updateDimensions = () => {
-      if (containerRef.current) {
-        setDimensions({
-          width: containerRef.current.clientWidth * 0.8,
-          height: containerRef.current.clientHeight
-        });
+    const fetchPlaylists = async () => {
+      try {
+        const data = await spotifyAPI.getPlaylists();
+        setPlaylists(data);
+      } catch (err: any) {
+        console.error('Failed to fetch playlists:', err);
+        setPlaylistErr(err?.message ?? 'Could not load playlists');
+      } finally {
+        setLoadingPlaylists(false);
       }
     };
+    fetchPlaylists();
+  }, []);
 
-    updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
-  }, []);  
+  /* ─────────────── Select playlist ─────────────── */
+  const handleSelect = (pl: SpotifyPlaylist) => {
+    setSelectedPl(pl);
+    localStorage.setItem('selected_playlist', JSON.stringify(pl));
+    setShowGraph(false);
+    setSelectedNode(null);
+    setRecommendations([]);
+  };
+
+  /* ─────────────── Analyze & build graph ─────────────── */
+  const handleAnalyze = async () => {
+    if (!selectedPl) return;
+    setGraphLoading(true);
+    setGraphError(null);
+    setAnalysisType('regular');
+
+    try {
+      const playlistTracks = await spotifyAPI.getPlaylistTracks(selectedPl.id);
+
+      /* build graph from playlist tracks */
+      const nodes: Node[] = playlistTracks.map(({ track }) => {
+        const cover =
+          track.album.images?.[0]?.url ??
+          'https://placehold.co/300x300?text=No+Art';
+        return {
+          id: track.id,
+          label: track.name,
+          image: cover,
+          metadata: {
+            artist: track.artists.map((a) => a.name).join(', '),
+            album: track.album.name,
+            popularity: track.popularity,
+            explicit: track.explicit,
+          },
+        };
+      });
+
+      const links = nodes.map((n, i) => ({
+        source: n.id,
+        target: nodes[(i + 1) % nodes.length].id,
+        weight: 0.5,
+      }));
+
+      setGraphData({ nodes, links });
+      setShowGraph(true);
+    } catch (err: any) {
+      console.error('Error analyzing playlist:', err);
+      setGraphError(err?.message ?? 'Failed to analyze playlist');
+
+      /* dev fallback */
+      if (process.env.NODE_ENV === 'development') {
+        setGraphData({
+          nodes: [
+            { id: '1', label: 'Mock 1', image: '', metadata: {} },
+            { id: '2', label: 'Mock 2', image: '', metadata: {} },
+          ],
+          links: [{ source: '1', target: '2', weight: 1 }],
+        });
+        setShowGraph(true);
+      }
+    } finally {
+      setGraphLoading(false);
+    }
+  };
+
+  /* ─────────────── Get recommendations ─────────────── */
+  const handleGetRecommendations = async () => {
+    if (!selectedPl) return;
+    setGraphLoading(true);
+    setGraphError(null);
+    setAnalysisType('recommendations');
+
+    try {
+      // Get access token from localStorage or wherever you store it
+      const token = localStorage.getItem('spotify_access_token');
+
+      // Call the backend recommendation endpoint
+      const response = await fetch(
+        `http://localhost:5000/api/graph/recommendations?playlist_id=${selectedPl.id}`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`,
+            'Spotify-Access-Token': token || ''
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setRecommendations(data.recommendations || []);
+      setGraphData(data.graphData || { nodes: [], links: [] });
+      setShowGraph(true);
+      setActiveTab('recommendations');
+    } catch (err: any) {
+      console.error('Error getting recommendations:', err);
+      setGraphError(err?.message ?? 'Failed to get recommendations');
+    } finally {
+      setGraphLoading(false);
+    }
+  };
+
+  /* ────────────────────────────────────────────────────── */
 
   return (
-    <div 
+    <div
       ref={containerRef}
-      style={{ 
+      style={{
         width: '100%',
-        height: 'calc(100vh - var(--mantine-header-height, 103px))',
-        backgroundColor: 'var(--mantine-color-gray-1)', 
-        padding: '0.5rem',
+        height: 'calc(100vh - 3.75rem)',
+        backgroundColor: 'var(--mantine-color-gray-1)',
+        padding: '1rem',
         display: 'flex',
-        gap: '0.5rem',
-        position: 'relative',
-        overflow: 'hidden'
+        flexDirection: 'column',
+        overflow: 'hidden',
       }}
     >
-      
-        <>
-          <Paper style={{ width: '80%', height: '100%', overflow: 'hidden' }}>
-            <ForceGraph2D
-              width={dimensions.width}
-              height={dimensions.height}
-              ref={fgRef}
-              graphData={mockGraphData}
-              nodeLabel={(node: Node) => `${node.label}`}
-              nodeAutoColorBy="id"
-              linkWidth={2}
-              enableNodeDrag={false}
-              onNodeClick={(node: Node) => setSelectedNode(node)}
-              nodeCanvasObject={(node: Node, ctx: CanvasRenderingContext2D, globalScale: number) => {
-                const img = new Image();
-                img.src = node.image ?? 'https://placehold.co/600x400';
-                const size = 40 / globalScale;
-                ctx.save();
-                ctx.beginPath();
-                ctx.arc(node.x!, node.y!, size / 2, 0, 2 * Math.PI, false);
-                ctx.clip();
-                ctx.drawImage(img, node.x! - size / 2, node.y! - size / 2, size, size);
-                ctx.restore();
+      {!showGraph ? (
+        <Stack
+          bg="var(--mantine-color-body)"
+          style={{ padding: 20, width: '100%', height: '100%' }}
+          justify="space-around"
+          align="center"
+          gap="xs"
+        >
+          <Text size="xl" fw={700} mb="md">
+            Select a Playlist to Analyze
+          </Text>
 
-                ctx.font = `${12 / globalScale}px Sans-Serif`;
-                ctx.textAlign = 'center';
-                ctx.fillStyle = 'black';
-                ctx.fillText(node.label, node.x!, node.y! - size / 2 - 5);
-              }}
-              nodePointerAreaPaint={(node: Node, color: string, ctx: CanvasRenderingContext2D) => {
-                const size = 40;
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                ctx.arc(node.x!, node.y!, size / 2, 0, 2 * Math.PI, false);
-                ctx.fill();
-              }}
-            />
-          </Paper>
+          {loadingPlaylists && (
+            <Center style={{ height: '30rem' }}>
+              <Loader size="lg" />
+            </Center>
+          )}
 
-          <Stack style={{ width: '20%' }} gap="md">
-            <Paper shadow="sm" p="md" style={{ flex: 1 }}>
-              <Title order={4} mb="md">Music Player</Title>
-              <Stack gap="md">
-                <div style={{
-                  width: '20%',
-                  aspectRatio: '1',
-                  backgroundColor: 'var(--mantine-color-gray-1)',
-                  borderRadius: 'var(--mantine-radius-md)',
+          {playlistErr && (
+            <Stack align="center" style={{ height: '30rem', justifyContent: 'center' }}>
+              <Text c="red" size="lg">
+                {playlistErr}
+              </Text>
+              <Button onClick={() => window.location.reload()}>Try Again</Button>
+            </Stack>
+          )}
+
+          {/* ─── Horizontal scroll list of playlists ─── */}
+          {!loadingPlaylists && !playlistErr && playlists.length > 0 && (
+            <ScrollArea
+              h={480} /* 30 rem */
+              offsetScrollbars
+              scrollbarSize={8}
+              type="always"
+              styles={{ viewport: { overflowY: 'hidden' } }}
+            >
+              <div
+                style={{
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <Text c="dimmed" size="xs">Album Art</Text>
-                </div>
-                
-                <div>
-                  <div style={{
-                    height: '4px',
-                    width: '100%',
-                    backgroundColor: 'var(--mantine-color-gray-2)',
-                    borderRadius: '2px',
-                    marginBottom: '0.5rem'
-                  }}>
-                    <div style={{
-                      height: '100%',
-                      width: '33%',
-                      backgroundColor: 'var(--mantine-color-blue-6)',
-                      borderRadius: '2px'
-                    }} />
-                  </div>
-                  <Group justify="space-between">
-                    <Text size="xs" c="dimmed">1:23</Text>
-                    <Text size="xs" c="dimmed">3:45</Text>
-                  </Group>
-                </div>
-                
-                <Group justify="center" gap="md">
-                  <Button variant="subtle" p="xs" style={{ borderRadius: '50%' }}>
-                    <IconPlayerTrackPrev size={20} />
-                  </Button>
-                  <Button 
-                    variant="subtle" 
-                    p="xs" 
-                    style={{ borderRadius: '50%' }}
-                    onClick={() => setIsPlaying(!isPlaying)}
-                  >
-                    {isPlaying ? <IconPlayerPause size={20} /> : <IconPlayerPlay size={20} />}
-                  </Button>
-                  <Button variant="subtle" p="xs" style={{ borderRadius: '50%' }}>
-                    <IconPlayerTrackNext size={20} />
-                  </Button>
-                </Group>
-              </Stack>
-            </Paper>
+                  gap: 12,
+                  paddingBottom: 8,
+                  minWidth: 'max-content', // prevent wrapping
+                }}
+              >
+                {playlists.map((pl) => {
+                  const selected = pl.id === selectedPl?.id;
+                  return (
+                    <Card
+                      key={pl.id}
+                      shadow="md"
+                      padding="sm"
+                      radius="md"
+                      w={240}
+                      style={{
+                        flexShrink: 0,
+                        cursor: 'pointer',
+                        outline: selected ? '3px solid var(--mantine-color-blue-6)' : 'none',
+                      }}
+                      onClick={() => handleSelect(pl)}
+                    >
+                      <Card.Section>
+                        <Image
+                          src={pl.images?.[0]?.url ?? 'https://via.placeholder.com/300'}
+                          alt={pl.name}
+                          height={320}
+                        />
+                      </Card.Section>
 
-            <Paper shadow="sm" p="md" style={{ flex: 3 }}>
-              <Title order={4} mb="md">Music Details</Title>
-              <Stack gap="md">
-                <div>
-                  <Text fw={500} size="sm">Selected Song</Text>
-                  <Text size="sm" c="dimmed">{selectedNode?.label ?? 'Click a node!'}</Text>
-                </div>
-                <div>
-                  <Text fw={500} size="sm">Artists</Text>
-                  <Text size="sm" c="dimmed">{selectedNode?.metadata?.artist ?? '-'}</Text>
-                </div>
-                <div>
-                  <Text fw={500} size="sm">Album</Text>
-                  <Text size="sm" c="dimmed">-</Text>
-                </div>
-                <div>
-                  <Text fw={500} size="sm">Genre</Text>
-                  <Text size="sm" c="dimmed">{selectedNode?.metadata?.genre ?? '-'}</Text>
-                </div>
-                <div>
-                  <Text fw={500} size="sm">Release Date</Text>
-                  <Text size="sm" c="dimmed">-</Text>
-                </div>
-                <div>
-                  <Text fw={500} size="sm">Duration</Text>
-                  <Text size="sm" c="dimmed">-</Text>
-                </div>
-                <div>
-                  <Text fw={500} size="sm">Connected Songs</Text>
-                  <Text size="sm" c="dimmed">-</Text>
-                </div>
-              </Stack>
+                      <Text mt="sm" fw={500} truncate>
+                        {pl.name}
+                      </Text>
+                      <Text size="sm" c="dimmed">
+                        {pl.tracks.total} tracks
+                      </Text>
+                    </Card>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          )}
+
+          {!loadingPlaylists && !playlistErr && playlists.length === 0 && (
+            <Text
+              c="dimmed"
+              style={{ height: '30rem', display: 'flex', alignItems: 'center' }}
+            >
+              No playlists found – is &ldquo;playlist‑read‑private&rdquo; in your scopes?
+            </Text>
+          )}
+
+          {selectedPl && (
+            <Group gap="md">
+              <Button size="lg" onClick={handleAnalyze} loading={graphLoading && analysisType === 'regular'}>
+                {graphLoading && analysisType === 'regular' ? 'Analyzing…' : `Analyze "${selectedPl.name}"`}
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                color="green" 
+                onClick={handleGetRecommendations} 
+                loading={graphLoading && analysisType === 'recommendations'}
+              >
+                {graphLoading && analysisType === 'recommendations' ? 'Generating…' : 'Get Recommendations'}
+              </Button>
+            </Group>
+          )}
+        </Stack>
+      ) : (
+        /* ─── Graph view ─── */
+        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <div
+            style={{
+              margin: '0 0 1rem 0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <Text size="xl" fw={700}>
+              {analysisType === 'recommendations' 
+                ? `Recommendations based on: ${selectedPl?.name}` 
+                : `Analyzing: ${selectedPl?.name}`
+              }
+            </Text>
+            <Group>
+              {analysisType === 'regular' && (
+                <Button 
+                  variant="outline" 
+                  color="green" 
+                  onClick={handleGetRecommendations}
+                  loading={graphLoading}
+                >
+                  Get Recommendations
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => setShowGraph(false)}>
+                Back to Playlists
+              </Button>
+            </Group>
+          </div>
+
+          {graphError && (
+            <Paper p="md" radius="md" mb="md" style={{ backgroundColor: 'var(--mantine-color-red-0)' }}>
+              <Text c="red">{graphError}</Text>
             </Paper>
-          </Stack>
-        </>
+          )}
+
+          <Paper radius="lg" shadow="lg" style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            {analysisType === 'recommendations' && (
+              <Tabs value={activeTab} onChange={(value) => setActiveTab(value as string)} style={{ padding: '0 1rem' }}>
+                <Tabs.List>
+                  <Tabs.Tab value="tracks">Playlist Graph</Tabs.Tab>
+                  <Tabs.Tab value="recommendations">Recommendations ({recommendations.length})</Tabs.Tab>
+                </Tabs.List>
+                
+                <Tabs.Panel value="recommendations" p="md">
+                  <ScrollArea style={{ height: '180px' }}>
+                    <Stack>
+                      {recommendations.map((rec) => (
+                        <Group key={rec.id} style={{ borderBottom: '1px solid #eee', paddingBottom: '8px' }}>
+                          <Group>
+                            <Text fw={600}>{rec.name}</Text>
+                            <Text color="dimmed">by {rec.artist}</Text>
+                          </Group>
+                          <Button 
+                            size="xs" 
+                            component="a" 
+                            href={`https://open.spotify.com/track/${rec.id}`}
+                            target="_blank"
+                            variant="subtle"
+                          >
+                            Play on Spotify
+                          </Button>
+                        </Group>
+                      ))}
+                    </Stack>
+                  </ScrollArea>
+                </Tabs.Panel>
+              </Tabs>
+            )}
+            
+            <div style={{ flex: 1 }}>
+              <ForceGraph
+                graphData={graphData}
+                onNodeClick={setSelectedNode}
+                selectedNode={selectedNode}
+              />
+            </div>
+          </Paper>
+        </div>
+      )}
     </div>
   );
 }
